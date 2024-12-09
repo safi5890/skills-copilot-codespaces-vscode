@@ -1,54 +1,32 @@
 // create web server
 
-// import express module
-var express = require('express');
+// import express
+const express = require('express');
+const app = express();
 
-// create express object
-var app = express();
-
-// import body-parser module
-var bodyParser = require('body-parser');
-
-// import mongoose module
-var mongoose = require('mongoose');
-
-// connect to the database
-mongoose.connect('mongodb://localhost/comments');
-
-// import Comment model
-var Comment = require('./models/comment');
-
-// set view engine
-app.set('view engine', 'ejs');
-
-// use body-parser
-app.use(bodyParser.urlencoded({extended: true}));
+// import body-parser
+const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
-// set static files
-app.use(express.static('public'));
+// import comments.js
+const comments = require('./comments.js');
 
-// route to get all comments
-app.get('/comments', function(req, res) {
-    // get all comments from the database
-    Comment.find(function(err, comments) {
-        if (err) {
-            res.send(err);
-        }
-        res.json(comments);
-    });
+// set port
+const port = 4001;
+
+// get all comments
+app.get('/comments', (req, res) => {
+  res.send(comments.getComments());
 });
 
-// route to create a comment
-app.post('/comments', function(req, res) {
-    // create a new comment
-    Comment.create({
-            text: req.body.text
-        }, function(err, comment) {
-            if (err) {
-                res.send(err);
-            }
-            res.json(comment);
-        });
+// add new comment
+app.post('/comments', (req, res) => {
+  const newComment = req.body.comment;
+  const addedComment = comments.addComment(newComment);
+  res.status(201).send(addedComment);
+});
 
+// start server
+app.listen(port, () => {
+  console.log(`Server is listening on ${port}`);
 });
